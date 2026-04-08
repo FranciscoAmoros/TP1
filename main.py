@@ -20,6 +20,8 @@ CANTIDAD_INCIAL = 1500
 
 running = True
 
+running_menu = True
+
 
 pygame.init()
 screen = pygame.display.set_mode((ancho_pantalla, alto_pantalla))
@@ -83,8 +85,18 @@ while running:
                     print("Se clickeó: ", b.nombre)
 
     dibujarFondo()
-    dibujarMenu(screen)
-    #dibujarPuntosNuevos()
+
+    if running_menu: # si esta en el menu
+
+        dibujarMenu(screen)
+
+        pygame.display.flip()
+        clock.tick(60)
+        continue
+
+
+
+    dibujarPuntosNuevos()
 
 
     # RENDER YOUR GAME HERE
