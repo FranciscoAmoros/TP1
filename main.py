@@ -71,6 +71,9 @@ def dibujarMenu(pantalla):
     boton_ajustes.dibujar(pantalla)
     boton_salir.dibujar(pantalla)
 
+def onClicked(boton="salir"):
+    pass
+
 
 
 while running:
@@ -86,7 +89,7 @@ while running:
 
     dibujarFondo()
 
-    if running_menu: # si esta en el menu
+    if running_menu: # si esta en el menu hace unicamente lo del menu
 
         dibujarMenu(screen)
 
