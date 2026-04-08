@@ -45,17 +45,29 @@ def dibujarPuntosNuevos():
 
 botones = []
 
-boton_jugar = Boton("imagenes/boton_jugar.png", 0, 0)
+boton_jugar = Boton("imagenes/boton_jugar.png", 0, 0, "jugar")
+boton_ajustes = Boton("imagenes/boton_jugar.png", 0, 0, "ajustes")
+boton_salir = Boton("imagenes/boton_jugar.png", 0, 0, "salir")
 
 botones.append(boton_jugar)
+botones.append(boton_ajustes)
+botones.append(boton_salir)
 
 
 boton_jugar.rect.centerx = ancho_pantalla // 2
-boton_jugar.rect.centery = alto_pantalla // 2 + alto_pantalla // 4
+boton_jugar.rect.centery = alto_pantalla // 2
+
+boton_ajustes.rect.centerx = ancho_pantalla // 2
+boton_ajustes.rect.centery = alto_pantalla // 2 + alto_pantalla // 4
+
+boton_salir.rect.centerx = ancho_pantalla // 2
+boton_salir.rect.centery = alto_pantalla // 2 + alto_pantalla // 4 + alto_pantalla // 4
 
 
 def dibujarMenu(pantalla):
     boton_jugar.dibujar(pantalla)
+    boton_ajustes.dibujar(pantalla)
+    boton_salir.dibujar(pantalla)
 
 
 
@@ -68,7 +80,7 @@ while running:
         if event.type == pygame.MOUSEBUTTONDOWN:
             for b in botones:
                 if b.clickeado(event.pos):
-                    print("Se clickeó:")
+                    print("Se clickeó: ", b.nombre)
 
     dibujarFondo()
     dibujarMenu(screen)

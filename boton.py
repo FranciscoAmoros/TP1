@@ -1,8 +1,9 @@
 import pygame
 
 class Boton:
-    def __init__(self, ruta_imagen, x, y, escala=1):
+    def __init__(self, ruta_imagen, x, y, nombre, escala=1):
         self.imagen_inicial = pygame.image.load(ruta_imagen).convert_alpha()
+        self.nombre = nombre
         
         if isinstance(escala, (int, float)): # verificacion de que el parametro escala sea int o float
             nuevo_ancho = int(self.imagen_inicial.get_width() * escala)
