@@ -17,6 +17,7 @@ alto_mundo = 5000
 # ------- VARIABLES DE JUEGO --------
 
 jugador : Serpiente
+sprint = False
 
 puntos = []
 
@@ -115,8 +116,6 @@ def colisiones_circulos(x1, y1, r1, x2, y2, r2): # funcion que detecta las colli
 
 
 
-
-
 while running:
 
     for event in pygame.event.get():
@@ -129,6 +128,16 @@ while running:
                     if b.clickeado(event.pos):
                         print("Se clickeó: ", b.nombre)
                         onClicked(b.nombre)
+
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LSHIFT:
+                if not running_menu:
+                    sprint = True
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LSHIFT:
+                if not running_menu:
+                    sprint = False
 
     
 
@@ -143,8 +152,15 @@ while running:
 
     if isinstance(jugador, Serpiente):
 
+
         cam_x = jugador.pos.x - ancho_pantalla // 2
         cam_y = jugador.pos.y - alto_pantalla // 2
+
+        if sprint:
+            jugador.velocidad = 3
+            #jugador.crecer(-2)
+        else:
+            jugador.velocidad = 2
 
         dibujarFondo(cam_x, cam_y)
 
