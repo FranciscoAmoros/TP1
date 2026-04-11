@@ -35,7 +35,7 @@ screen = pygame.display.set_mode((ancho_pantalla, alto_pantalla))
 clock = pygame.time.Clock()
 
 
-bg_image = pygame.image.load("imagenes/fondo.png")
+bg_image = pygame.image.load("imagenes/fondo slither.png")
 
 for i in range(CANTIDAD_INCIAL):
     puntos.append(Punto(ancho_mundo, alto_mundo))
