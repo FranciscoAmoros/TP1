@@ -8,6 +8,12 @@ from serpiente import Serpiente
 
 import random
 
+import math
+
+
+
+
+
 
 # ------- VARIABLES --------
 
@@ -23,13 +29,30 @@ modo_juego = "local"
 
 
 jugador : Serpiente
-sprint = False
 
 bots = []
 
 puntos = []
 
-CANTIDAD_JUGADORES_MIN = 6
+CANTIDAD_JUGADORES_MIN = 12
+
+COLORES_SERPIENTES = [
+    (255, 0, 0),      # rojo
+    (0, 255, 0),      # verde
+    (0, 0, 255),      # azul
+    (255, 255, 0),    # amarillo
+    (255, 0, 255),    # magenta
+    (0, 255, 255),    # cian
+    (255, 128, 0),    # naranja
+    (128, 0, 255),    # violeta
+    (0, 128, 255),    # celeste fuerte
+    (0, 255, 128),    # verde agua
+    (255, 0, 128),    # rosa fuerte
+    (128, 255, 0),    # verde lima
+    (255, 200, 200),  # rosa claro
+    (200, 255, 200),  # verde claro
+    (200, 200, 255),  # azul claro
+]
 
 CANTIDAD_INCIAL = 1500
 
@@ -42,11 +65,19 @@ pygame.init()
 screen = pygame.display.set_mode((ancho_pantalla, alto_pantalla))
 clock = pygame.time.Clock()
 
+# ------- EVENTOS ---------
+
+CAMBIO_DIR_BOT = pygame.USEREVENT + 1
+
+pygame.time.set_timer(CAMBIO_DIR_BOT, random.randint(3000, 7000))
+
+
 
 bg_image = pygame.image.load("imagenes/fondo_juego.png")
 
-for i in range(CANTIDAD_INCIAL):
-    puntos.append(Punto(ancho_mundo, alto_mundo))
+def SpawnearPuntos(cantidad):
+    for i in range(cantidad):
+        puntos.append(Punto(ancho_mundo, alto_mundo))
 
 
 def dibujarFondo(cam_x, cam_y):
@@ -118,25 +149,59 @@ def onClicked(boton="salir"):
     if boton == "red":
         modo_juego = "multijugador"
         pass
+
+def obtenerPosicionSpawn():
+
+    global jugador
+
+    pos_valida = False
+
+    pos_bot_x : pygame.Vector2
+    pos_bot_y : pygame.Vector2
+
+    while not pos_valida:
+        pos_bot_x, pos_bot_y = random.randint(50, ancho_mundo - 50), random.randint(50, alto_mundo - 50)
+
+
+        serpientes = bots.copy()
+        serpientes.append(jugador)
+        for serpiente in serpientes:
+            if isinstance(serpiente, Serpiente):
+                radio =  math.dist(serpiente.pos, serpiente.segmentos[-1]) / 2
+                cx = (serpiente.pos.x + serpiente.segmentos[-1].x) / 2
+                cy = (serpiente.pos.y + serpiente.segmentos[-1].y) / 2
+
+                distancia = math.dist((pos_bot_x, pos_bot_y), (cx, cy))
+
+                if distancia < radio + 20:
+                    break
+        else:
+            pos_valida = True
+
+    return pos_bot_x, pos_bot_y
     
 def startLocalGame():
 
+    SpawnearPuntos(CANTIDAD_INCIAL)
+
     global jugador, bots
+
+    indice_color = random.randint(0, len(COLORES_SERPIENTES)-1)
+
     
-    jugador = Serpiente(300, 200)
+    jugador = Serpiente(300, 200, COLORES_SERPIENTES[indice_color])
+
+    COLORES_SERPIENTES.pop(indice_color)
 
 
     for i in range(CANTIDAD_JUGADORES_MIN - 1):
 
-        pos_valida = False
-
-        while not pos_valida:
-            pos_bot_x, pos_bot_y = random.randint(50, ancho_mundo - 50), random.randint(50, alto_mundo - 50)
-
-            # aca revisar que no haya un bot o jugador DEMASIADO cerca
+        pos_x, pos_y = obtenerPosicionSpawn()
+        indice_color = random.randint(0, len(COLORES_SERPIENTES)-1)
 
 
-        bot = Serpiente()
+        bot = Serpiente(pos_x, pos_y, COLORES_SERPIENTES[indice_color])
+        COLORES_SERPIENTES.pop(indice_color)
         bots.append(bot)
 
 
@@ -144,9 +209,80 @@ def colisiones_circulos(x1, y1, r1, x2, y2, r2): # funcion que detecta las colli
 
     return (x1 - x2)**2 + (y1 - y2)**2 <= (r1 + r2)**2 # midiendo la distancia y el radio
 
+def colision_jugador_vs_bots(jugador, bots):
+    head_x, head_y, head_r = jugador.get_head_hitbox()
+
+    for bot in bots:
+        for bx, by, br in bot.get_body_hitboxes():
+            if colisiones_circulos(head_x, head_y, head_r, bx, by, br):
+                return True  # jugador muere
+
+    return False
+
+def colision_bots_vs_jugador(jugador, bots):
+    head_x, head_y, head_r = jugador.get_head_hitbox()
+
+    for bot in bots:
+        bx, by, br = bot.get_head_hitbox()
+
+        for jx, jy, jr in jugador.get_body_hitboxes():
+            if colisiones_circulos(bx, by, br, jx, jy, jr):
+                return bot  # el bot muere
+
+    return None
+
+def colision_bots_vs_bots(bots):
+    muertos = []
+
+    for i, bot in enumerate(bots):
+        bx, by, br = bot.get_head_hitbox()
+
+        for j, otro in enumerate(bots):
+            if i == j:
+                continue
+
+            for ox, oy, orad in otro.get_body_hitboxes():
+                if colisiones_circulos(bx, by, br, ox, oy, orad):
+                    muertos.append(bot)
+                    break
+
+    return muertos
+
+def colision_jugador_puntos(jugador, puntos):
+    head_x, head_y, head_r = jugador.get_head_hitbox()
+
+    for p in puntos[:]:
+        if colisiones_circulos(head_x, head_y, head_r, p.x, p.y, p.size):
+            jugador.crecer(p.size)
+            puntos.remove(p)
+
+def onMuerteSerpiente(serpiente: Serpiente):
+
+    segmentos_serpiente = serpiente.segmentos #lista con posiciones
+    largo_serpiente = serpiente.largo_objetivo # variable numerica cantidad de segmentos
+    cantidad_puntos = 0
+
+    done = False
+
+    while not done:
+
+        posicion = random.choice(segmentos_serpiente)
+        segmentos_serpiente.remove(posicion)
+
+        punto = Punto(ancho_mundo, alto_mundo, posicion)
+        cantidad_puntos += punto.size
+
+        puntos.append(punto)
+
+        if abs(cantidad_puntos - largo_serpiente) < 3:
+            done = True
+
+
 
 
 while running:
+
+    dt = clock.get_time() / 1000
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -162,12 +298,21 @@ while running:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LSHIFT:
                 if not running_menu:
-                    sprint = True
+                    jugador.sprint = True
 
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_LSHIFT:
                 if not running_menu:
-                    sprint = False
+                    jugador.sprint = False
+
+        if event.type == CAMBIO_DIR_BOT:
+
+            if modo_juego == "local":
+
+                for bot in bots:
+
+                    bot.set_random_direction()
+
 
     
 
@@ -181,37 +326,43 @@ while running:
 
 
     if isinstance(jugador, Serpiente):
+        
 
 
         cam_x = jugador.pos.x - ancho_pantalla // 2
         cam_y = jugador.pos.y - alto_pantalla // 2
 
-        if sprint:
-            jugador.velocidad = 3
-            #jugador.crecer(-2)
-        else:
-            jugador.velocidad = 2
+        if colision_jugador_vs_bots(jugador, bots):
+            running = False
+
+        bot_muerto = colision_bots_vs_jugador(jugador, bots)
+        if bot_muerto:
+            onMuerteSerpiente(bot_muerto)
+            bots.remove(bot_muerto)
+
+        bots_muertos = colision_bots_vs_bots(bots)
+        for b in bots_muertos:
+            if b in bots:
+                onMuerteSerpiente(b)
+                bots.remove(b)
+
+        colision_jugador_puntos(jugador, puntos)
 
         dibujarFondo(cam_x, cam_y)
 
-        jugador_head_collision = jugador.get_head_hitbox()
-        jugador_body_collision = jugador.get_body_hitboxes()
+        dibujarPuntosNuevos(cam_x, cam_y)
 
+        for bot in bots:
 
-        hitbox_x, hitbox_y, hitbox_radius = jugador_head_collision # variables para la cabeza del jugador
-
-        for p in puntos[:]:
-            if colisiones_circulos(hitbox_x, hitbox_y, hitbox_radius, p.x, p.y, p.size):
-                jugador.crecer(p.size)
-                puntos.remove(p)
-        
+            bot.actualizar(dt)
+            bot.dibujar(screen, cam_x, cam_y)
 
         jugador.set_direccion_con_mouse()
-        jugador.actualizar()
-
-        dibujarPuntosNuevos(cam_x, cam_y) # dibujar primero los puntos antes que el jugador
+        jugador.actualizar(dt)
 
         jugador.dibujar(screen, cam_x, cam_y)
+
+
 
 
 

@@ -1,5 +1,7 @@
 import pygame
 import math
+import random
+
 
 class Serpiente:
     def __init__(self, x, y, color=(0,255,0), velocidad=2, tamaño_segmento=10):
@@ -9,24 +11,45 @@ class Serpiente:
         self.tamaño_segmento = tamaño_segmento
         
         self.segmentos = [self.pos.copy()]
-        self.largo_objetivo = 40
+        self.largo_objetivo = 10
+        self.distancia_acumulada = 0
 
         self.color = color
 
-    def actualizar(self):
-  
-        self.pos += self.direccion * self.velocidad
+        self.sprint = False
+        self.tiempo_sprint = 0
 
-        self.segmentos.insert(0, self.pos.copy())
 
-        if len(self.segmentos) > self.largo_objetivo:
+    def actualizar(self, dt):
+
+        if self.sprint: self.velocidad = 3
+        else: self.velocidad = 2
+
+        movimiento = self.direccion * self.velocidad
+        self.pos += movimiento
+
+        self.distancia_acumulada += movimiento.length()
+
+        while self.distancia_acumulada >= self.tamaño_segmento:
+            self.segmentos.insert(0, self.pos.copy())
+            self.distancia_acumulada -= self.tamaño_segmento
+
+        while len(self.segmentos) > self.largo_objetivo:
             self.segmentos.pop()
+
+        if self.sprint:
+            self.tiempo_sprint += dt
+            if self.tiempo_sprint >= 0.5:
+                self.crecer(-1)
+                self.tiempo_sprint = 0
+        else:
+            self.tiempo_sprint = 0
 
 
     def crecer(self, cantidad=2):
-        self.largo_objetivo += cantidad
+        self.largo_objetivo += cantidad/4
 
-    def dibujar(self, pantalla, cam_x, cam_y):
+    def dibujar(self, pantalla, cam_x=0, cam_y=0):
         for s in self.segmentos:
             pygame.draw.circle(
                 pantalla, 
@@ -52,3 +75,9 @@ class Serpiente:
             dir_vec = pygame.Vector2(mx, my) - pygame.Vector2(400, 300)
             if dir_vec.length() > 0:
                 self.direccion = dir_vec.normalize()
+
+    def set_random_direction(self):
+
+        dir = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
+        self.direccion = dir
+
