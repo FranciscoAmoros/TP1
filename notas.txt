@@ -1,0 +1,11 @@
+para mejorar el juego con bots, hacer distintas personalidades
+de bots, estilo fantasmas de pakman
+
+diferentes posibles personalidades:
+
+--- uno que coma muchos puntos
+--- uno que intente comerte
+--- uno que si te ve se vaya sprinteando
+--- uno que cambie de direccion seguido
+
+--- etc

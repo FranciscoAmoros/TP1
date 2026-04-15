@@ -19,6 +19,8 @@ class Serpiente:
         self.sprint = False
         self.tiempo_sprint = 0
 
+        self.contador_puntos_consumidos = 0
+
 
     def actualizar(self, dt):
 
@@ -48,6 +50,7 @@ class Serpiente:
 
     def crecer(self, cantidad=2):
         self.largo_objetivo += cantidad/4
+        self.contador_puntos_consumidos += cantidad
 
     def dibujar(self, pantalla, cam_x=0, cam_y=0):
         for s in self.segmentos:
