@@ -6,6 +6,9 @@ from boton import Boton
 
 from serpiente import Serpiente
 
+import random
+
+
 # ------- VARIABLES --------
 
 ancho_pantalla = 800
@@ -16,8 +19,13 @@ alto_mundo = 5000
 
 # ------- VARIABLES DE JUEGO --------
 
+modo_juego = "local"
+
+
 jugador : Serpiente
 sprint = False
+
+bots = []
 
 puntos = []
 
@@ -35,7 +43,7 @@ screen = pygame.display.set_mode((ancho_pantalla, alto_pantalla))
 clock = pygame.time.Clock()
 
 
-bg_image = pygame.image.load("imagenes/fondo slither.png")
+bg_image = pygame.image.load("imagenes/fondo_juego.png")
 
 for i in range(CANTIDAD_INCIAL):
     puntos.append(Punto(ancho_mundo, alto_mundo))
@@ -45,9 +53,15 @@ def dibujarFondo(cam_x, cam_y):
 
     global bg_image
 
-    bg = bg_image
+
     
-    bg_w, bg_h = bg.get_size()
+    bg_w, bg_h = bg_image.get_size()
+    bg_w, bg_h = bg_w*4, bg_h*4
+
+    bg = pygame.transform.scale(bg_image, (bg_w, bg_h))
+
+
+    
 
     start_x = -cam_x % bg_w
     start_y = -cam_y % bg_h
@@ -64,9 +78,9 @@ def dibujarPuntosNuevos(cam_x, cam_y):
 
 botones = []
 
-boton_jugar = Boton("imagenes/boton base.png", 0, 0, "local", 0.2)
-boton_ajustes = Boton("imagenes/boton base.png", 0, 0, "red", 0.2)
-boton_salir = Boton("imagenes/boton base.png", 0, 0, "salir", 0.2)
+boton_jugar = Boton("imagenes/boton base.jpg", 0, 0, "local", 0.2)
+boton_ajustes = Boton("imagenes/boton base.jpg", 0, 0, "red", 0.2)
+boton_salir = Boton("imagenes/boton base.jpg", 0, 0, "salir", 0.2)
 
 botones.append(boton_jugar)
 botones.append(boton_ajustes)
@@ -92,22 +106,38 @@ def dibujarMenu():
 
 def onClicked(boton="salir"):
 
-    global running, running_menu
+    global running, running_menu, modo_juego
 
     if boton == "salir":
         running = False
     if boton == "local":
         running_menu = False
+        modo_juego = "local"
         startLocalGame()
 
     if boton == "red":
+        modo_juego = "multijugador"
         pass
     
 def startLocalGame():
 
-    global jugador
+    global jugador, bots
     
     jugador = Serpiente(300, 200)
+
+
+    for i in range(CANTIDAD_JUGADORES_MIN - 1):
+
+        pos_valida = False
+
+        while not pos_valida:
+            pos_bot_x, pos_bot_y = random.randint(50, ancho_mundo - 50), random.randint(50, alto_mundo - 50)
+
+            # aca revisar que no haya un bot o jugador DEMASIADO cerca
+
+
+        bot = Serpiente()
+        bots.append(bot)
 
 
 def colisiones_circulos(x1, y1, r1, x2, y2, r2): # funcion que detecta las collisiones entre cirulos
