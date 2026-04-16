@@ -10,6 +10,8 @@ class Punto:
 
             self.x = random.randint(0, ancho)
             self.y = random.randint(0, alto)
+        
+        self.pos = (self.x, self.y)
             
         self.size = random.randint(2, 7)
         self.color = (

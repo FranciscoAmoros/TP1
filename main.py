@@ -6,6 +6,9 @@ from boton import Boton
 
 from serpiente import Serpiente
 
+from bots import SerpienteAgresiva
+from bots import SerpienteComePuntos
+
 import random
 
 import math
@@ -13,7 +16,7 @@ import math
 import collisiones as col
 
 
-
+clases_bots = [SerpienteAgresiva, SerpienteComePuntos]
 
 
 
@@ -33,10 +36,11 @@ modo_juego = "local"
 jugador : Serpiente
 
 bots = []
+serpientes = []
 
 puntos = []
 
-CANTIDAD_JUGADORES_MIN = 12
+CANTIDAD_JUGADORES_MIN = 30
 
 COLORES_SERPIENTES = [
     (255, 0, 0),      # rojo
@@ -69,9 +73,6 @@ clock = pygame.time.Clock()
 
 # ------- EVENTOS ---------
 
-CAMBIO_DIR_BOT = pygame.USEREVENT + 1
-
-pygame.time.set_timer(CAMBIO_DIR_BOT, random.randint(3000, 7000))
 
 
 
@@ -192,8 +193,9 @@ def startLocalGame():
 
     
     jugador = Serpiente(300, 200, COLORES_SERPIENTES[indice_color])
+    serpientes.append(jugador)
 
-    COLORES_SERPIENTES.pop(indice_color)
+    #COLORES_SERPIENTES.pop(indice_color)
 
 
     for i in range(CANTIDAD_JUGADORES_MIN - 1):
@@ -201,10 +203,11 @@ def startLocalGame():
         pos_x, pos_y = obtenerPosicionSpawn()
         indice_color = random.randint(0, len(COLORES_SERPIENTES)-1)
 
-
-        bot = Serpiente(pos_x, pos_y, COLORES_SERPIENTES[indice_color])
-        COLORES_SERPIENTES.pop(indice_color)
+        clase_bot = random.choice(clases_bots)
+        bot = clase_bot(pos_x, pos_y, COLORES_SERPIENTES[indice_color])
+        #COLORES_SERPIENTES.pop(indice_color)
         bots.append(bot)
+        serpientes.append(bot)
 
 
 def onMuerteSerpiente(serpiente: Serpiente):
@@ -252,13 +255,6 @@ while running:
                 if not running_menu:
                     jugador.sprint = False
 
-        if event.type == CAMBIO_DIR_BOT:
-
-            if modo_juego == "local":
-
-                for bot in bots:
-
-                    bot.set_random_direction()
 
 
     
@@ -302,7 +298,7 @@ while running:
 
         for bot in bots:
 
-            bot.actualizar(dt)
+            bot.actualizar(dt, serpientes, puntos)
             bot.dibujar(screen, cam_x, cam_y)
 
         jugador.set_direccion_con_mouse()
