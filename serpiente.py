@@ -4,7 +4,7 @@ import random
 
 
 class Serpiente:
-    def __init__(self, x, y, color=(0,255,0), velocidad=2, tamaño_segmento=10):
+    def __init__(self, x, y, nombre, color=(0,255,0), velocidad=2, tamaño_segmento=10):
         self.pos = pygame.Vector2(x, y)
         self.direccion = pygame.Vector2(1, 0)
         self.velocidad = velocidad
@@ -15,6 +15,7 @@ class Serpiente:
         self.distancia_acumulada = 0
 
         self.color = color
+        self.nombre = nombre
 
         self.sprint = False
         self.tiempo_sprint = 0
@@ -24,10 +25,10 @@ class Serpiente:
 
     def actualizar(self, dt):
 
-        if self.sprint: self.velocidad = 3
-        else: self.velocidad = 2
+        if self.sprint: self.velocidad = 180
+        else: self.velocidad = 120
 
-        movimiento = self.direccion * self.velocidad
+        movimiento = self.direccion * self.velocidad * dt
         self.pos += movimiento
 
         self.distancia_acumulada += movimiento.length()
@@ -53,6 +54,9 @@ class Serpiente:
         self.contador_puntos_consumidos += cantidad
         if self.largo_objetivo < 5:
             self.largo_objetivo = 5
+            
+        if self.contador_puntos_consumidos < 5:
+            self.contador_puntos_consumidos = 5
 
     def dibujar(self, pantalla, cam_x=0, cam_y=0):
         for s in self.segmentos:
@@ -85,4 +89,5 @@ class Serpiente:
 
         dir = pygame.Vector2(random.uniform(-1, 1), random.uniform(-1, 1)).normalize()
         self.direccion = dir
+
 

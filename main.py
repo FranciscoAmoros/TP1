@@ -8,6 +8,7 @@ from serpiente import Serpiente
 
 from bots import SerpienteAgresiva
 from bots import SerpienteComePuntos
+from bots import SerpienteMiedosa
 
 import random
 
@@ -15,8 +16,10 @@ import math
 
 import collisiones as col
 
+import UI
 
-clases_bots = [SerpienteAgresiva, SerpienteComePuntos]
+
+clases_bots = [SerpienteAgresiva, SerpienteComePuntos, SerpienteMiedosa]
 
 
 
@@ -25,8 +28,8 @@ clases_bots = [SerpienteAgresiva, SerpienteComePuntos]
 ancho_pantalla = 800
 alto_pantalla = 600
 
-ancho_mundo = 5000
-alto_mundo = 5000
+ancho_mundo = 2000
+alto_mundo = 2000
 
 # ------- VARIABLES DE JUEGO --------
 
@@ -40,27 +43,28 @@ serpientes = []
 
 puntos = []
 
-CANTIDAD_JUGADORES_MIN = 30
+CANTIDAD_JUGADORES_MIN = 12
 
-COLORES_SERPIENTES = [
-    (255, 0, 0),      # rojo
-    (0, 255, 0),      # verde
-    (0, 0, 255),      # azul
-    (255, 255, 0),    # amarillo
-    (255, 0, 255),    # magenta
-    (0, 255, 255),    # cian
-    (255, 128, 0),    # naranja
-    (128, 0, 255),    # violeta
-    (0, 128, 255),    # celeste fuerte
-    (0, 255, 128),    # verde agua
-    (255, 0, 128),    # rosa fuerte
-    (128, 255, 0),    # verde lima
-    (255, 200, 200),  # rosa claro
-    (200, 255, 200),  # verde claro
-    (200, 200, 255),  # azul claro
-]
 
-CANTIDAD_INCIAL = 1500
+COLORES_SERPIENTES = {
+    "rojo": (255, 0, 0),
+    "verde": (0, 255, 0),
+    "azul": (0, 0, 255),
+    "amarillo": (255, 255, 0),
+    "magenta": (255, 0, 255),
+    "cian": (0, 255, 255),
+    "naranja": (255, 128, 0),
+    "violeta": (128, 0, 255),
+    "celeste fuerte": (0, 128, 255),
+    "verde agua": (0, 255, 128),
+    "rosa fuerte": (255, 0, 128),
+    "verde lima": (128, 255, 0),
+    "rosa claro": (255, 200, 200),
+    "verde claro": (200, 255, 200),
+    "azul claro": (200, 200, 255),
+}
+
+CANTIDAD_INCIAL_PUNTOS = 500
 
 running = True
 
@@ -86,6 +90,10 @@ def SpawnearPuntos(cantidad):
 def dibujarFondo(cam_x, cam_y):
 
     global bg_image
+    
+    screen.fill((0,0,0))
+    
+    """
 
 
     
@@ -103,6 +111,7 @@ def dibujarFondo(cam_x, cam_y):
     for x in range(-bg_w, ancho_pantalla + bg_w, bg_w):
         for y in range(-bg_h, alto_pantalla + bg_h, bg_h):
             screen.blit(bg, (start_x + x, start_y + y))
+    """
 
 def dibujarPuntosNuevos(cam_x, cam_y):
     for p in puntos:
@@ -132,8 +141,10 @@ boton_salir.rect.centery = alto_pantalla // 2 + alto_pantalla // 4 + alto_pantal
 
 
 def dibujarMenu():
+    """
     bg = pygame.transform.scale(bg_image, (ancho_pantalla, alto_pantalla))
     screen.blit(bg, (0,0))
+    """
     boton_jugar.dibujar(screen)
     boton_ajustes.dibujar(screen)
     boton_salir.dibujar(screen)
@@ -185,29 +196,43 @@ def obtenerPosicionSpawn():
     
 def startLocalGame():
 
-    SpawnearPuntos(CANTIDAD_INCIAL)
+    SpawnearPuntos(CANTIDAD_INCIAL_PUNTOS)
 
     global jugador, bots
 
-    indice_color = random.randint(0, len(COLORES_SERPIENTES)-1)
+    lista_colores = list(COLORES_SERPIENTES.values())
+    lista_nombres = list(COLORES_SERPIENTES.keys())
 
-    
-    jugador = Serpiente(300, 200, COLORES_SERPIENTES[indice_color])
+    # --- Crear jugador ---
+    indice = random.randint(0, len(lista_colores)-1)
+    color_elegido = lista_colores[indice]
+    nombre_color = lista_nombres[indice]
+
+    jugador = Serpiente(300, 200, nombre_color, color_elegido)
     serpientes.append(jugador)
 
-    #COLORES_SERPIENTES.pop(indice_color)
+    # Para que no se repita (opcional):
+    lista_colores.pop(indice)
+    lista_nombres.pop(indice)
 
-
+    # --- Crear bots ---
     for i in range(CANTIDAD_JUGADORES_MIN - 1):
 
         pos_x, pos_y = obtenerPosicionSpawn()
-        indice_color = random.randint(0, len(COLORES_SERPIENTES)-1)
+
+        indice = random.randint(0, len(lista_colores)-1)
+        color_elegido = lista_colores[indice]
+        nombre_color = lista_nombres[indice]
 
         clase_bot = random.choice(clases_bots)
-        bot = clase_bot(pos_x, pos_y, COLORES_SERPIENTES[indice_color])
-        #COLORES_SERPIENTES.pop(indice_color)
+        bot = clase_bot(pos_x, pos_y, nombre_color, color_elegido)
+
         bots.append(bot)
         serpientes.append(bot)
+
+        # Para evitar repetidos (opcional):
+        lista_colores.pop(indice)
+        lista_nombres.pop(indice)
 
 
 def onMuerteSerpiente(serpiente: Serpiente):
@@ -282,12 +307,14 @@ while running:
         if bot_muerto:
             onMuerteSerpiente(bot_muerto)
             bots.remove(bot_muerto)
+            serpientes.remove(bot_muerto)
 
         bots_muertos = col.colision_bots_vs_bots(bots)
         for b in bots_muertos:
             if b in bots:
                 onMuerteSerpiente(b)
                 bots.remove(b)
+                serpientes.remove(b)
 
         col.colision_jugador_puntos(jugador, puntos)
         col.colision_bots_puntos(bots, puntos)
@@ -295,16 +322,19 @@ while running:
         dibujarFondo(cam_x, cam_y)
 
         dibujarPuntosNuevos(cam_x, cam_y)
+    
 
         for bot in bots:
 
-            bot.actualizar(dt, serpientes, puntos)
+            bot.actualizar(dt, serpientes, puntos, jugador)
             bot.dibujar(screen, cam_x, cam_y)
 
         jugador.set_direccion_con_mouse()
         jugador.actualizar(dt)
 
         jugador.dibujar(screen, cam_x, cam_y)
+        
+        UI.dibujar_leaderboard(screen, serpientes, ancho_pantalla -250, 50)
 
 
 
