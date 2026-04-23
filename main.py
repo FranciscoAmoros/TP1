@@ -25,11 +25,11 @@ clases_bots = [SerpienteAgresiva, SerpienteComePuntos, SerpienteMiedosa]
 
 # ------- VARIABLES --------
 
-ancho_pantalla = 800
-alto_pantalla = 600
+ancho_pantalla = 1200
+alto_pantalla = 800
 
-ancho_mundo = 2000
-alto_mundo = 2000
+MAP_RADIUS = 1500
+CENTER = (1500, 1500)
 
 # ------- VARIABLES DE JUEGO --------
 
@@ -64,7 +64,7 @@ COLORES_SERPIENTES = {
     "azul claro": (200, 200, 255),
 }
 
-CANTIDAD_INCIAL_PUNTOS = 500
+CANTIDAD_INCIAL_PUNTOS = 1000
 
 running = True
 
@@ -80,38 +80,41 @@ clock = pygame.time.Clock()
 
 
 
-bg_image = pygame.image.load("imagenes/fondo_juego.png")
+bg_image = pygame.image.load("imagenes/fondo sliher.jpg")
+tamaño_bg_image_x, tamaño_bg_image_y = bg_image.get_size()
+tamaño_bg_image_x, tamaño_bg_image_y = tamaño_bg_image_x * 4, tamaño_bg_image_y * 4
+bg_image_scaled = pygame.transform.scale(bg_image, (tamaño_bg_image_x, tamaño_bg_image_y))
 
 def SpawnearPuntos(cantidad):
     for i in range(cantidad):
-        puntos.append(Punto(ancho_mundo, alto_mundo))
+        puntos.append(Punto(MAP_RADIUS, CENTER))
 
 
 def dibujarFondo(cam_x, cam_y):
 
-    global bg_image
+    global bg_image_scaled
     
     screen.fill((0,0,0))
     
-    """
 
 
     
-    bg_w, bg_h = bg_image.get_size()
-    bg_w, bg_h = bg_w*4, bg_h*4
-
-    bg = pygame.transform.scale(bg_image, (bg_w, bg_h))
-
-
-    
+    bg_w, bg_h = bg_image_scaled.get_size()
 
     start_x = -cam_x % bg_w
     start_y = -cam_y % bg_h
 
     for x in range(-bg_w, ancho_pantalla + bg_w, bg_w):
         for y in range(-bg_h, alto_pantalla + bg_h, bg_h):
-            screen.blit(bg, (start_x + x, start_y + y))
-    """
+            screen.blit(bg_image_scaled, (start_x + x, start_y + y))
+
+    pygame.draw.circle(
+    screen,
+    (255, 0, 0),
+    (int(CENTER[0] - cam_x), int(CENTER[1] - cam_y)),
+    MAP_RADIUS,
+    5
+)
 
 def dibujarPuntosNuevos(cam_x, cam_y):
     for p in puntos:
@@ -141,10 +144,17 @@ boton_salir.rect.centery = alto_pantalla // 2 + alto_pantalla // 4 + alto_pantal
 
 
 def dibujarMenu():
-    """
-    bg = pygame.transform.scale(bg_image, (ancho_pantalla, alto_pantalla))
-    screen.blit(bg, (0,0))
-    """
+    
+    global bg_image_scaled
+
+    bg_w, bg_h = bg_image_scaled.get_size()
+
+
+    for x in range(-bg_w, ancho_pantalla + bg_w, bg_w):
+        for y in range(-bg_h, alto_pantalla + bg_h, bg_h):
+            screen.blit(bg_image_scaled, (x, y))
+
+
     boton_jugar.dibujar(screen)
     boton_ajustes.dibujar(screen)
     boton_salir.dibujar(screen)
@@ -164,24 +174,31 @@ def onClicked(boton="salir"):
         modo_juego = "multijugador"
         pass
 
+import random
+import math
+import pygame
+
 def obtenerPosicionSpawn():
 
     global jugador
 
     pos_valida = False
 
-    pos_bot_x : pygame.Vector2
-    pos_bot_y : pygame.Vector2
-
     while not pos_valida:
-        pos_bot_x, pos_bot_y = random.randint(50, ancho_mundo - 50), random.randint(50, alto_mundo - 50)
 
+        angle = random.uniform(0, 2 * math.pi)
+        r = (MAP_RADIUS - 50) * math.sqrt(random.random())
+
+        pos_bot_x = CENTER[0] + r * math.cos(angle)
+        pos_bot_y = CENTER[1] + r * math.sin(angle)
 
         serpientes = bots.copy()
         serpientes.append(jugador)
+
         for serpiente in serpientes:
             if isinstance(serpiente, Serpiente):
-                radio =  math.dist(serpiente.pos, serpiente.segmentos[-1]) / 2
+
+                radio = math.dist(serpiente.pos, serpiente.segmentos[-1]) / 2
                 cx = (serpiente.pos.x + serpiente.segmentos[-1].x) / 2
                 cy = (serpiente.pos.y + serpiente.segmentos[-1].y) / 2
 
@@ -208,7 +225,7 @@ def startLocalGame():
     color_elegido = lista_colores[indice]
     nombre_color = lista_nombres[indice]
 
-    jugador = Serpiente(300, 200, nombre_color, color_elegido)
+    jugador = Serpiente(300, 200, nombre_color, CENTER, MAP_RADIUS, color_elegido)
     serpientes.append(jugador)
 
     # Para que no se repita (opcional):
@@ -225,7 +242,7 @@ def startLocalGame():
         nombre_color = lista_nombres[indice]
 
         clase_bot = random.choice(clases_bots)
-        bot = clase_bot(pos_x, pos_y, nombre_color, color_elegido)
+        bot = clase_bot(pos_x, pos_y, nombre_color, CENTER, MAP_RADIUS, color_elegido)
 
         bots.append(bot)
         serpientes.append(bot)
@@ -248,7 +265,7 @@ def onMuerteSerpiente(serpiente: Serpiente):
         pos = random.choice(segmentos)
         segmentos.remove(pos)
 
-        punto = Punto(ancho_mundo, alto_mundo, pygame.Vector2(pos.x, pos.y))
+        punto = Punto(MAP_RADIUS, CENTER, pygame.Vector2(pos.x, pos.y))
         cantidad_puntos += punto.size
         puntos.append(punto)
 

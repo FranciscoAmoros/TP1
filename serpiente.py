@@ -4,11 +4,14 @@ import random
 
 
 class Serpiente:
-    def __init__(self, x, y, nombre, color=(0,255,0), velocidad=2, tamaño_segmento=10):
+    def __init__(self, x, y, nombre, centro_mundo, radio_mundo, color=(0,255,0), velocidad=2, tamaño_segmento=10):
         self.pos = pygame.Vector2(x, y)
         self.direccion = pygame.Vector2(1, 0)
         self.velocidad = velocidad
         self.tamaño_segmento = tamaño_segmento
+
+        self.centro_mundo = centro_mundo
+        self.radio_mundo = radio_mundo
         
         self.segmentos = [self.pos.copy()]
         self.largo_objetivo = 10
@@ -30,6 +33,17 @@ class Serpiente:
 
         movimiento = self.direccion * self.velocidad * dt
         self.pos += movimiento
+
+        dx = self.pos.x - self.centro_mundo[0]
+        dy = self.pos.y - self.centro_mundo[1]
+
+        dist_sq = dx*dx + dy*dy
+
+        if dist_sq > self.radio_mundo * self.radio_mundo:
+            dist = math.sqrt(dist_sq)
+            factor = self.radio_mundo / dist
+            self.pos.x = self.centro_mundo[0] + dx * factor
+            self.pos.y = self.centro_mundo[1] + dy * factor
 
         self.distancia_acumulada += movimiento.length()
 

@@ -1,15 +1,19 @@
 import random
 import pygame
+import math
 
 class Punto:
-    def __init__(self, ancho, alto, posicion=None):
+    def __init__(self, radio, centro, posicion=None):
 
         if isinstance(posicion, pygame.Vector2):
             self.x, self.y = posicion
         else:
 
-            self.x = random.randint(0, ancho)
-            self.y = random.randint(0, alto)
+            angle = random.uniform(0, 2 * math.pi)
+            r = radio * math.sqrt(random.random())
+
+            self.x = centro[0] + r * math.cos(angle)
+            self.y = centro[1] + r * math.sin(angle)
         
         self.pos = (self.x, self.y)
             

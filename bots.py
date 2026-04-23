@@ -2,11 +2,13 @@ from serpiente import Serpiente
 
 import pygame
 
+import math
+
 import random
 
 class SerpienteAgresiva(Serpiente):
-    def __init__(self, x, y, color=..., velocidad=2, tamaño_segmento=10):
-        super().__init__(x, y, color, velocidad, tamaño_segmento)
+    def __init__(self, x, y, centro_mundo, radio_mundo, color=..., velocidad=2, tamaño_segmento=10):
+        super().__init__(x, y, centro_mundo, radio_mundo, color, velocidad, tamaño_segmento)
 
         self.objetivo_actual = None
         self.rango_agresion = 300
@@ -44,6 +46,17 @@ class SerpienteAgresiva(Serpiente):
 
         movimiento = self.direccion * self.velocidad * dt
         self.pos += movimiento
+
+        dx = self.pos.x - self.centro_mundo[0]
+        dy = self.pos.y - self.centro_mundo[1]
+
+        dist_sq = dx*dx + dy*dy
+
+        if dist_sq > self.radio_mundo * self.radio_mundo:
+            dist = math.sqrt(dist_sq)
+            factor = self.radio_mundo / dist
+            self.pos.x = self.centro_mundo[0] + dx * factor
+            self.pos.y = self.centro_mundo[1] + dy * factor
 
         self.distancia_acumulada += movimiento.length()
 
@@ -147,8 +160,8 @@ class SerpienteAgresiva(Serpiente):
                         self.direccion = direccion
 
 class SerpienteComePuntos(Serpiente):
-    def __init__(self, x, y, color=..., velocidad=2, tamaño_segmento=10):
-        super().__init__(x, y, color, velocidad, tamaño_segmento)
+    def __init__(self, x, y, centro_mundo, radio_mundo, color=..., velocidad=2, tamaño_segmento=10):
+        super().__init__(x, y, centro_mundo, radio_mundo, color, velocidad, tamaño_segmento)
 
         self.perseguir_puntos = False
         self.movimiento_random = True
@@ -164,6 +177,17 @@ class SerpienteComePuntos(Serpiente):
 
         movimiento = self.direccion * self.velocidad * dt
         self.pos += movimiento
+
+        dx = self.pos.x - self.centro_mundo[0]
+        dy = self.pos.y - self.centro_mundo[1]
+
+        dist_sq = dx*dx + dy*dy
+
+        if dist_sq > self.radio_mundo * self.radio_mundo:
+            dist = math.sqrt(dist_sq)
+            factor = self.radio_mundo / dist
+            self.pos.x = self.centro_mundo[0] + dx * factor
+            self.pos.y = self.centro_mundo[1] + dy * factor
 
         self.distancia_acumulada += movimiento.length()
 
@@ -233,8 +257,8 @@ class SerpienteComePuntos(Serpiente):
 
 class SerpienteMiedosa(Serpiente):
     
-    def __init__(self, x, y, color=..., velocidad=2, tamaño_segmento=10):
-        super().__init__(x, y, color, velocidad, tamaño_segmento)
+    def __init__(self, x, y, centro_mundo, radio_mundo, color=..., velocidad=2, tamaño_segmento=10):
+        super().__init__(x, y, centro_mundo, radio_mundo, color, velocidad, tamaño_segmento)
         
         self.perseguir_puntos = False
         self.movimiento_random = True
@@ -254,6 +278,17 @@ class SerpienteMiedosa(Serpiente):
 
         movimiento = self.direccion * self.velocidad * dt
         self.pos += movimiento
+
+        dx = self.pos.x - self.centro_mundo[0]
+        dy = self.pos.y - self.centro_mundo[1]
+
+        dist_sq = dx*dx + dy*dy
+
+        if dist_sq > self.radio_mundo * self.radio_mundo:
+            dist = math.sqrt(dist_sq)
+            factor = self.radio_mundo / dist
+            self.pos.x = self.centro_mundo[0] + dx * factor
+            self.pos.y = self.centro_mundo[1] + dy * factor
 
         self.distancia_acumulada += movimiento.length()
 
