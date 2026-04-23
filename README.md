@@ -50,4 +50,26 @@ empieza igual que termina, para poder hacer el mapa abierto. Finalmente cree uno
 
 15 DE ABRIl
 
----
+Creando primeros bots, para eso use la clase serpiente, heredando todos hijos de esa clase, crenado asi 3 comportamientos distintos:
+
+- Serpiente Agresiva
+- Serpiente Come puntos
+- Serpiente Miedosa
+
+La agresiva intenta rodearte, la come puntos se dedica el mayor tiempo a comer puntos y la miedosa si ve algo se escapa, esta suele ser la que mas dura en el juego
+
+16 DE ABRIL
+
+Este dia continue haciendo personalidades de los bots
+
+22 DE ABRIL
+
+Perfeccionando cosas y creando el readme con los commits
+
+23 DE ABRIL
+
+Añadi un menu de cuando moris o ganas y termine el readme
+
+Cosas que me hubiera gustado poder hacer:
+Poder hacer un menu de ajustes para la partida con bots
+Hacer multijugador online

@@ -2,8 +2,6 @@ import pygame
 
 from puntos import Punto
 
-from boton import Boton
-
 from serpiente import Serpiente
 
 from bots import SerpienteAgresiva
@@ -28,8 +26,8 @@ clases_bots = [SerpienteAgresiva, SerpienteComePuntos, SerpienteMiedosa]
 ancho_pantalla = 1200
 alto_pantalla = 800
 
-MAP_RADIUS = 1500
-CENTER = (1500, 1500)
+MAP_RADIUS = 2000
+CENTER = (2000, 2000)
 
 # ------- VARIABLES DE JUEGO --------
 
@@ -47,8 +45,7 @@ serpientes = []
 
 puntos = []
 
-CANTIDAD_JUGADORES_MIN = 12
-
+CANTIDAD_JUGADORES_MIN = 20
 
 COLORES_SERPIENTES = {
     "rojo": (255, 0, 0),
@@ -66,9 +63,20 @@ COLORES_SERPIENTES = {
     "rosa claro": (255, 200, 200),
     "verde claro": (200, 255, 200),
     "azul claro": (200, 200, 255),
+
+    "gris": (120, 120, 120),
+    "gris claro": (200, 200, 200),
+    "gris oscuro": (60, 60, 60),
+    "marron": (139, 69, 19),
+    "oro": (255, 215, 0),
+    "turquesa": (64, 224, 208),
+    "lavanda": (230, 230, 250),
+    "salmon": (250, 128, 114),
+    "azul marino": (0, 0, 128),
+    "verde oscuro": (0, 100, 0),
 }
 
-CANTIDAD_INCIAL_PUNTOS = 1000
+CANTIDAD_INCIAL_PUNTOS = 2200
 
 running = True
 
@@ -128,16 +136,13 @@ def dibujarPuntosNuevos(cam_x, cam_y):
 
 botones = []
 
-boton_jugar = Boton("JUGAR", ancho_pantalla//2 - 150, alto_pantalla//2, 300, 70)
-boton_salir = Boton("SALIR", ancho_pantalla//2 - 150, alto_pantalla//2 + 100, 300, 70)
+botones = []
 
+boton_jugar = UI.Boton("JUGAR", ancho_pantalla//2 - 150, alto_pantalla//2, 300, 70)
+boton_salir = UI.Boton("SALIR", ancho_pantalla//2 - 150, alto_pantalla//2 + 100, 300, 70)
 
 botones.append(boton_jugar)
 botones.append(boton_salir)
-
-
-boton_jugar = Boton("JUGAR", ancho_pantalla//2 - 150, alto_pantalla//2, 300, 70)
-boton_salir = Boton("SALIR", ancho_pantalla//2 - 150, alto_pantalla//2 + 100, 300, 70)
 
 
 def dibujarMenu():
@@ -217,7 +222,6 @@ def startLocalGame():
     lista_colores = list(COLORES_SERPIENTES.values())
     lista_nombres = list(COLORES_SERPIENTES.keys())
 
-    # --- Crear jugador ---
     indice = random.randint(0, len(lista_colores)-1)
     color_elegido = lista_colores[indice]
     nombre_color = lista_nombres[indice]
@@ -225,11 +229,10 @@ def startLocalGame():
     jugador = Serpiente(300, 200, nombre_color, CENTER, MAP_RADIUS, color_elegido)
     serpientes.append(jugador)
 
-    # Para que no se repita (opcional):
+
     lista_colores.pop(indice)
     lista_nombres.pop(indice)
 
-    # --- Crear bots ---
     for i in range(CANTIDAD_JUGADORES_MIN - 1):
 
         pos_x, pos_y = obtenerPosicionSpawn()
@@ -238,13 +241,21 @@ def startLocalGame():
         color_elegido = lista_colores[indice]
         nombre_color = lista_nombres[indice]
 
-        clase_bot = random.choice(clases_bots)
+        # 🎯 DISTRIBUCIÓN DE TIPOS
+        r = random.random()
+
+        if r < 0.6:
+            clase_bot = SerpienteAgresiva
+        elif r < 0.8:
+            clase_bot = SerpienteMiedosa
+        else:
+            clase_bot = SerpienteComePuntos
+
         bot = clase_bot(pos_x, pos_y, nombre_color, CENTER, MAP_RADIUS, color_elegido)
 
         bots.append(bot)
         serpientes.append(bot)
 
-        # Para evitar repetidos (opcional):
         lista_colores.pop(indice)
         lista_nombres.pop(indice)
 

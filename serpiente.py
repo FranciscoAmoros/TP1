@@ -64,6 +64,7 @@ class Serpiente:
 
 
     def crecer(self, cantidad):
+        self.tamaño_segmento += cantidad / 30
         self.largo_objetivo += cantidad/4
         self.contador_puntos_consumidos += cantidad
         if self.largo_objetivo < 5:
