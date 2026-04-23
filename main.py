@@ -35,6 +35,10 @@ CENTER = (1500, 1500)
 
 modo_juego = "local"
 
+game_over = False
+gano = False
+boton_final = None
+
 
 jugador : Serpiente
 
@@ -124,23 +128,16 @@ def dibujarPuntosNuevos(cam_x, cam_y):
 
 botones = []
 
-boton_jugar = Boton("imagenes/boton base.jpg", 0, 0, "local", 0.2)
-boton_ajustes = Boton("imagenes/boton base.jpg", 0, 0, "red", 0.2)
-boton_salir = Boton("imagenes/boton base.jpg", 0, 0, "salir", 0.2)
+boton_jugar = Boton("JUGAR", ancho_pantalla//2 - 150, alto_pantalla//2, 300, 70)
+boton_salir = Boton("SALIR", ancho_pantalla//2 - 150, alto_pantalla//2 + 100, 300, 70)
+
 
 botones.append(boton_jugar)
-botones.append(boton_ajustes)
 botones.append(boton_salir)
 
 
-boton_jugar.rect.centerx = ancho_pantalla // 2
-boton_jugar.rect.centery = alto_pantalla // 2 + alto_pantalla // 8
-
-boton_ajustes.rect.centerx = ancho_pantalla // 2
-boton_ajustes.rect.centery = alto_pantalla // 2 + alto_pantalla // 4 + 20
-
-boton_salir.rect.centerx = ancho_pantalla // 2
-boton_salir.rect.centery = alto_pantalla // 2 + alto_pantalla // 4 + alto_pantalla // 8 + 40
+boton_jugar = Boton("JUGAR", ancho_pantalla//2 - 150, alto_pantalla//2, 300, 70)
+boton_salir = Boton("SALIR", ancho_pantalla//2 - 150, alto_pantalla//2 + 100, 300, 70)
 
 
 def dibujarMenu():
@@ -156,27 +153,19 @@ def dibujarMenu():
 
 
     boton_jugar.dibujar(screen)
-    boton_ajustes.dibujar(screen)
     boton_salir.dibujar(screen)
 
 def onClicked(boton="salir"):
-
-    global running, running_menu, modo_juego
+    global running, running_menu
 
     if boton == "salir":
         running = False
-    if boton == "local":
+
+    if boton == "jugar":
         running_menu = False
-        modo_juego = "local"
         startLocalGame()
 
-    if boton == "red":
-        modo_juego = "multijugador"
-        pass
 
-import random
-import math
-import pygame
 
 def obtenerPosicionSpawn():
 
@@ -210,6 +199,14 @@ def obtenerPosicionSpawn():
             pos_valida = True
 
     return pos_bot_x, pos_bot_y
+
+def resetJuego():
+    global bots, serpientes, puntos, jugador
+
+    bots.clear()
+    serpientes.clear()
+    puntos.clear()
+    jugador = None
     
 def startLocalGame():
 
@@ -269,6 +266,26 @@ def onMuerteSerpiente(serpiente: Serpiente):
         cantidad_puntos += punto.size
         puntos.append(punto)
 
+    """
+    distancias_bots = []
+
+    for bot in bots:
+        if bot is serpiente:
+            continue
+
+        dist = bot.pos.distance_to(serpiente.pos)
+        distancias_bots.append((dist, bot))
+
+    distancias_bots.sort(key=lambda x: x[0])
+
+    dos_mas_cercanas = distancias_bots[:2]
+
+    for distancia, bot_cercano in dos_mas_cercanas:
+        bot_cercano.onMuerteSerpiente(distancia, serpiente.pos)
+    """
+
+
+
 
 
 
@@ -284,8 +301,13 @@ while running:
             if running_menu:
                 for b in botones:
                     if b.clickeado(event.pos):
-                        print("Se clickeó: ", b.nombre)
-                        onClicked(b.nombre)
+                        onClicked(b.texto.lower())
+
+            elif game_over and boton_final:
+                if boton_final.clickeado(event.pos):
+                    resetJuego()
+                    running_menu = True
+                    game_over = False
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LSHIFT:
@@ -309,6 +331,18 @@ while running:
         clock.tick(60)
         continue
 
+    if game_over:
+        boton_final = UI.dibujar_pantalla_final(
+            screen,
+            gano,
+            jugador.contador_puntos_consumidos if jugador else 0,
+            ancho_pantalla,
+            alto_pantalla
+        )
+        pygame.display.flip()
+        clock.tick(60)
+        continue
+
 
     if isinstance(jugador, Serpiente):
         
@@ -318,7 +352,10 @@ while running:
         cam_y = jugador.pos.y - alto_pantalla // 2
 
         if col.colision_jugador_vs_bots(jugador, bots):
-            running = False
+            onMuerteSerpiente(jugador)
+            serpientes.remove(jugador)
+            game_over = True
+            gano = False
 
         bot_muerto = col.colision_bots_vs_jugador(jugador, bots)
         if bot_muerto:
@@ -326,12 +363,20 @@ while running:
             bots.remove(bot_muerto)
             serpientes.remove(bot_muerto)
 
+            if len(bots) == 0:
+                game_over = True
+                gano = True
+
         bots_muertos = col.colision_bots_vs_bots(bots)
         for b in bots_muertos:
             if b in bots:
                 onMuerteSerpiente(b)
                 bots.remove(b)
                 serpientes.remove(b)
+
+                if len(bots) == 0:
+                    game_over = True
+                    gano = True
 
         col.colision_jugador_puntos(jugador, puntos)
         col.colision_bots_puntos(bots, puntos)
@@ -352,8 +397,6 @@ while running:
         jugador.dibujar(screen, cam_x, cam_y)
         
         UI.dibujar_leaderboard(screen, serpientes, ancho_pantalla -250, 50)
-
-
 
 
 

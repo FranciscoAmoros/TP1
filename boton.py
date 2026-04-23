@@ -1,24 +1,29 @@
 import pygame
 
 class Boton:
-    def __init__(self, ruta_imagen, x, y, nombre, escala=1):
-        self.imagen_inicial = pygame.image.load(ruta_imagen).convert_alpha()
-        self.nombre = nombre
-        
-        if isinstance(escala, (int, float)): # verificacion de que el parametro escala sea int o float
-            nuevo_ancho = int(self.imagen_inicial.get_width() * escala)
-            nuevo_alto = int(self.imagen_inicial.get_height() * escala)
+    def __init__(self, texto, x, y, w, h):
+        self.rect = pygame.Rect(x, y, w, h)
+        self.texto = texto
 
-        else:
+        self.color_normal = (40, 40, 40)
+        self.color_hover = (70, 70, 70)
+        self.color_borde = (200, 200, 200)
 
-            nuevo_ancho, nuevo_alto = escala # si la escala no es un numero, espero un tamaño especifico (x, y)
+        self.font = pygame.font.SysFont("Arial", 36)
 
-        
-        self.imagen = pygame.transform.smoothscale(self.imagen_inicial, (nuevo_ancho, nuevo_alto))
-        self.rect = self.imagen.get_rect(topleft=(x, y))
+    def dibujar(self, screen):
+        mouse_pos = pygame.mouse.get_pos()
 
-    def dibujar(self, pantalla):
-        pantalla.blit(self.imagen, self.rect)
+        color = self.color_hover if self.rect.collidepoint(mouse_pos) else self.color_normal
 
-    def clickeado(self, pos_mouse):
-        return self.rect.collidepoint(pos_mouse)
+        sombra = self.rect.move(4, 4)
+        pygame.draw.rect(screen, (0, 0, 0), sombra, border_radius=12)
+
+        pygame.draw.rect(screen, color, self.rect, border_radius=12)
+        pygame.draw.rect(screen, self.color_borde, self.rect, 2, border_radius=12)
+
+        txt = self.font.render(self.texto.upper(), True, (255, 255, 255))
+        screen.blit(txt, txt.get_rect(center=self.rect.center))
+
+    def clickeado(self, pos):
+        return self.rect.collidepoint(pos)
